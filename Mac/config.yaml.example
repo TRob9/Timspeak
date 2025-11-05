@@ -1,0 +1,80 @@
+# Timspeak Configuration
+# Copy this file to config.yaml and fill in your API keys
+
+stt:
+  default: whisper_fast
+  providers:
+    whisper_local:
+      # Official openai-whisper (slower but original implementation)
+      enabled: true
+      model_size: base  # Options: tiny, base, small, medium, large
+      language: en
+
+    whisper_fast:
+      # faster-whisper (4x faster, less memory usage)
+      enabled: true
+      model_size: base  # Options: tiny, base, small, medium, large
+      language: en
+      device: cpu  # Options: cpu, cuda
+      compute_type: int8  # Options: int8, float16, float32
+
+    whisper_cloud:
+      # OpenAI Whisper API (cloud-based, requires API key)
+      enabled: false
+      api_key: YOUR_OPENAI_API_KEY_HERE
+      model: whisper-1
+
+    google_cloud:
+      # Google Cloud Speech-to-Text (requires API key and credentials)
+      enabled: false
+      api_key: YOUR_GOOGLE_CLOUD_API_KEY_HERE
+      language_code: en-US
+
+    macos_speech:
+      # macOS Speech Recognition (native, macOS only)
+      enabled: true
+
+llm:
+  default: claude
+  providers:
+    claude:
+      model: claude-sonnet-4-5-20250929
+      api_key: YOUR_ANTHROPIC_API_KEY_HERE
+      max_tokens: 1000
+      temperature: 0.3
+
+    openai:
+      model: gpt-4
+      api_key: YOUR_OPENAI_API_KEY_HERE
+      max_tokens: 1000
+      temperature: 0.3
+
+    ollama:
+      # Local Ollama instance
+      model: llama2
+      base_url: http://localhost:11434
+
+    # Add more LLM providers as needed through LiteLLM
+
+audio:
+  sample_rate: 16000
+  channels: 1
+  chunk_size: 1024
+  device_index: null  # null for default, or specify device number
+
+web:
+  host: 127.0.0.1  # localhost only for security
+  port: 5000
+  debug: false
+
+cleaning_prompt: |
+  You are a dictation cleaning assistant. Your job is to:
+
+  1. Remove filler words (um, uh, like, you know)
+  2. Fix grammatical errors
+  3. Add appropriate punctuation
+  4. Preserve the original meaning and tone
+  5. Keep technical terms and proper nouns intact
+  6. Format as natural, readable text
+
+  Return ONLY the cleaned text without any explanations or commentary.
