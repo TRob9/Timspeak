@@ -239,17 +239,43 @@ def setup_ollama_interactive():
         choice = input("\nWould you like to install Ollama now? (y/n): ").strip().lower()
 
         if choice == 'y':
-            print("\n📥 Installing Ollama via Homebrew...")
-            print("This may take a few minutes...")
-
-            # Check if brew is installed
+            # Check if brew is installed first
             if not shutil.which('brew'):
                 print("\n❌ Homebrew is not installed.")
-                print("\nTo install Homebrew, run:")
-                print('  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
-                print("\nOr download Ollama manually: https://ollama.ai/download")
-                print("\nAfter installing, restart Timspeak.")
-                return False
+                print("\nHomebrew is needed to install Ollama automatically.")
+
+                brew_choice = input("\nWould you like to install Homebrew now? (y/n): ").strip().lower()
+
+                if brew_choice == 'y':
+                    print("\n📥 Installing Homebrew...")
+                    print("⚠️  You will be prompted for your password.")
+                    print("This may take several minutes...")
+
+                    try:
+                        # Run Homebrew installation script
+                        subprocess.run(
+                            '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+                            check=True,
+                            shell=True
+                        )
+                        print("\n✓ Homebrew installed successfully!")
+
+                    except subprocess.CalledProcessError as e:
+                        print(f"\n❌ Failed to install Homebrew: {e}")
+                        print("\nYou can install manually by running:")
+                        print('  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+                        print("\nOr download Ollama manually: https://ollama.ai/download")
+                        print("\nAfter installing, restart Timspeak.")
+                        return False
+                else:
+                    print("\nTo install Homebrew later, run:")
+                    print('  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+                    print("\nOr download Ollama manually: https://ollama.ai/download")
+                    print("\nAfter installing, restart Timspeak.")
+                    return False
+
+            print("\n📥 Installing Ollama via Homebrew...")
+            print("This may take a few minutes...")
 
             try:
                 # Install Ollama using brew
