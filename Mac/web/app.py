@@ -233,11 +233,42 @@ def setup_ollama_interactive():
     # Check if Ollama is installed
     if not check_ollama_installed():
         print("\n❌ Ollama is not installed.")
-        print("\nTo install Ollama:")
-        print("  • Download: https://ollama.ai/download")
-        print("  • Or run: brew install ollama")
-        print("\nAfter installing, restart Timspeak.")
-        return False
+        print("\nOllama is a free, local AI that runs on your Mac.")
+
+        # Prompt user to install
+        choice = input("\nWould you like to install Ollama now? (y/n): ").strip().lower()
+
+        if choice == 'y':
+            print("\n📥 Installing Ollama via Homebrew...")
+            print("This may take a few minutes...")
+
+            # Check if brew is installed
+            if not shutil.which('brew'):
+                print("\n❌ Homebrew is not installed.")
+                print("\nTo install Homebrew, run:")
+                print('  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+                print("\nOr download Ollama manually: https://ollama.ai/download")
+                print("\nAfter installing, restart Timspeak.")
+                return False
+
+            try:
+                # Install Ollama using brew
+                subprocess.run(['brew', 'install', 'ollama'], check=True)
+                print("\n✓ Ollama installed successfully!")
+
+            except subprocess.CalledProcessError as e:
+                print(f"\n❌ Failed to install Ollama: {e}")
+                print("\nYou can install manually:")
+                print("  • Download: https://ollama.ai/download")
+                print("  • Or run: brew install ollama")
+                print("\nAfter installing, restart Timspeak.")
+                return False
+        else:
+            print("\nTo install Ollama later:")
+            print("  • Download: https://ollama.ai/download")
+            print("  • Or run: brew install ollama")
+            print("\nAfter installing, restart Timspeak.")
+            return False
 
     print("\n✓ Ollama is installed!")
 
