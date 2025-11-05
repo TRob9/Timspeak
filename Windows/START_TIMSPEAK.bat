@@ -2,9 +2,14 @@
 REM Timspeak Windows Launcher
 REM Double-click this file to start Timspeak
 
+REM Change to the directory where this script is located
+cd /d "%~dp0"
+
 echo ============================================================
 echo Timspeak - AI-Powered Dictation System (Windows)
 echo ============================================================
+echo.
+echo Current directory: %CD%
 echo.
 
 REM Check if Python is installed
