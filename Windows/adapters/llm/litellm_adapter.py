@@ -90,9 +90,14 @@ class LiteLLMAdapter(LLMAdapter):
         try:
             import litellm
 
-            # Ollama doesn't need API key
+            # Ollama: Check if server is running
             if self.provider_name == 'ollama':
-                return True
+                try:
+                    import requests
+                    response = requests.get(f"{self.base_url}/api/tags", timeout=2)
+                    return response.status_code == 200
+                except:
+                    return False
 
             # Other providers need API key
             return bool(self.api_key)

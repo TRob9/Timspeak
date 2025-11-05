@@ -31,24 +31,33 @@ stt:
       language_code: en-US
 
 llm:
-  default: claude
+  # Default: ollama (no API key needed, runs locally)
+  # Note: Ollama on Pi 4 is slow. Cloud APIs recommended for Pi.
+  # Change to 'claude' or 'openai' after adding API keys below
+  default: ollama
   providers:
+    ollama:
+      # Local Ollama instance (NO API KEY NEEDED, but slow on Pi)
+      # Install: curl -fsSL https://ollama.ai/install.sh | sh
+      # Run: ollama pull llama2 && ollama serve
+      # Consider using cloud APIs for better Pi performance
+      enabled: true
+      model: llama2
+      base_url: http://localhost:11434
+
     claude:
+      enabled: false
       model: claude-sonnet-4-5-20250929
       api_key: YOUR_ANTHROPIC_API_KEY_HERE
       max_tokens: 1000
       temperature: 0.3
 
     openai:
+      enabled: false
       model: gpt-4
       api_key: YOUR_OPENAI_API_KEY_HERE
       max_tokens: 1000
       temperature: 0.3
-
-    ollama:
-      # Local Ollama instance (can run on Pi, but slow)
-      model: llama2
-      base_url: http://localhost:11434
 
     # Add more LLM providers as needed through LiteLLM
 

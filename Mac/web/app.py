@@ -231,8 +231,25 @@ def main():
         print("Install at least one: pip install openai-whisper faster-whisper")
 
     if not llm_adapters:
-        print("\n⚠️  WARNING: No LLM adapters available!")
-        print("Configure API keys in config.yaml")
+        print("\n" + "=" * 60)
+        print("⚠️  NO LLM ADAPTERS AVAILABLE!")
+        print("=" * 60)
+        print("\nTimspeak needs an LLM to clean your dictation.")
+        print("\n🚀 RECOMMENDED: Use Ollama (runs locally, no API key needed)")
+        print("\nQuick Start with Ollama:")
+        print("  1. Install Ollama:")
+        print("     macOS: https://ollama.ai/download")
+        print("     Or: brew install ollama")
+        print("\n  2. Open a NEW terminal and run:")
+        print("     ollama pull llama2")
+        print("     ollama serve")
+        print("\n  3. Restart Timspeak")
+        print("\n📝 Alternative: Add API keys to config.yaml")
+        print("   - Anthropic Claude: https://console.anthropic.com")
+        print("   - OpenAI GPT: https://platform.openai.com")
+        print("\n" + "=" * 60)
+        input("\nPress Enter to continue (Timspeak will start but won't work until you set up an LLM)...")
+        print()
 
     # Start Flask server
     web_config = config.get('web', {})

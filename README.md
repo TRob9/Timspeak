@@ -160,6 +160,97 @@ sudo systemctl enable timspeak  # Start on boot
 
 **Switch modes:** Hold Listen button for 3 seconds (LED blinks 3x to confirm)
 
+## LLM Setup (Required)
+
+Timspeak **requires an LLM** to clean your dictation. By default, it uses **Ollama** (local, no API key needed).
+
+### Option 1: Ollama (Recommended for Getting Started)
+
+**Runs locally on your computer - no API keys, no internet, no cost!**
+
+#### Windows
+```bash
+# Download and install from https://ollama.ai/download
+# Or use winget:
+winget install Ollama.Ollama
+
+# Open a terminal and run:
+ollama pull llama2
+ollama serve
+```
+
+#### macOS
+```bash
+# Download from https://ollama.ai/download
+# Or use Homebrew:
+brew install ollama
+
+# Then run:
+ollama pull llama2
+ollama serve
+```
+
+#### Raspberry Pi
+```bash
+curl -fsSL https://ollama.ai/install.sh | sh
+ollama pull llama2
+ollama serve
+```
+
+**Note:** Ollama runs in the background. Keep it running while using Timspeak!
+
+#### Recommended Models
+- **llama2** (default) - Good balance of speed and quality
+- **mistral** - Faster, good quality
+- **llama2:13b** - Better quality, slower
+- **codellama** - Good for technical dictation
+
+To use a different model:
+```bash
+ollama pull mistral
+# Then update config.yaml: model: mistral
+```
+
+### Option 2: Cloud LLMs (Better Quality)
+
+For better results, use cloud LLMs:
+
+#### Anthropic Claude (Recommended)
+1. Get API key: https://console.anthropic.com
+2. Edit `config.yaml`:
+```yaml
+llm:
+  default: claude  # Change from ollama
+  providers:
+    claude:
+      enabled: true
+      api_key: YOUR_API_KEY_HERE
+```
+
+#### OpenAI GPT
+1. Get API key: https://platform.openai.com
+2. Edit `config.yaml`:
+```yaml
+llm:
+  default: openai
+  providers:
+    openai:
+      enabled: true
+      api_key: YOUR_API_KEY_HERE
+```
+
+**Cost Comparison:**
+- **Ollama:** Free, runs locally
+- **Claude:** ~$0.003 per dictation (high quality)
+- **GPT-4:** ~$0.01 per dictation (highest quality)
+
+### Startup Behavior
+
+When you start Timspeak:
+- **If Ollama is running:** Everything works automatically!
+- **If no LLM available:** You'll see helpful setup instructions
+- Timspeak will guide you through the setup process
+
 ## Configuration
 
 All platforms use a `config.yaml` file (copy from `config.yaml.example`):
@@ -183,21 +274,24 @@ stt:
       enabled: false
       api_key: YOUR_GOOGLE_CLOUD_API_KEY
 
-# LLM for text cleaning
+# LLM for text cleaning (Default: ollama - no API key needed!)
 llm:
-  default: claude
+  default: ollama  # Change to 'claude' or 'openai' after adding API keys
   providers:
+    ollama:
+      enabled: true
+      model: llama2
+      base_url: http://localhost:11434
+
     claude:
+      enabled: false
       model: claude-sonnet-4-5-20250929
       api_key: YOUR_ANTHROPIC_API_KEY
 
     openai:
+      enabled: false
       model: gpt-4
       api_key: YOUR_OPENAI_API_KEY
-
-    ollama:
-      model: llama2
-      base_url: http://localhost:11434
 
 # Raspberry Pi hardware (Pi only)
 hardware:

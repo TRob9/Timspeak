@@ -94,7 +94,18 @@ class TimspeakPi:
         if self.llm_adapter.is_available():
             print(f"✓ LLM adapter loaded: {self.llm_adapter.get_name()}")
         else:
+            print("\n" + "=" * 60)
             print(f"✗ LLM adapter '{llm_provider}' not available")
+            print("=" * 60)
+            print("\nTimspeak needs an LLM to clean your dictation.")
+            print("\n🚀 RECOMMENDED for Pi: Use cloud LLM (faster)")
+            print("   - Anthropic Claude: https://console.anthropic.com")
+            print("   - OpenAI GPT: https://platform.openai.com")
+            print("   Add API key to config.yaml and set as default")
+            print("\n🐌 Alternative: Local Ollama (slower on Pi)")
+            print("   Install: curl -fsSL https://ollama.ai/install.sh | sh")
+            print("   Run: ollama pull llama2 && ollama serve")
+            print("\n" + "=" * 60)
             sys.exit(1)
 
     def init_hardware(self):
