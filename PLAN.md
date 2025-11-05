@@ -93,6 +93,7 @@ Timspeak/
 │   └── stt_interface.py            # STT adapter interface
 │
 ├── Mac/
+│   ├── START_TIMSPEAK.command      # One-click launcher (double-click)
 │   ├── requirements.txt            # Python dependencies
 │   ├── config.yaml.example         # Configuration template
 │   ├── main.py                     # Entry point
@@ -102,9 +103,11 @@ Timspeak/
 │   │   └── llm_adapter.py         # LLM port implementation
 │   ├── adapters/
 │   │   ├── stt/
-│   │   │   ├── whisper_local.py
-│   │   │   ├── whisper_cloud.py
-│   │   │   └── google_cloud.py
+│   │   │   ├── whisper_local.py    # openai-whisper
+│   │   │   ├── whisper_fast.py     # faster-whisper
+│   │   │   ├── whisper_cloud.py    # OpenAI API
+│   │   │   ├── google_cloud.py
+│   │   │   └── macos_speech.py     # Native macOS Speech Framework
 │   │   └── llm/
 │   │       └── litellm_adapter.py  # Unified LLM interface
 │   └── web/
@@ -116,18 +119,36 @@ Timspeak/
 │           └── script.js
 │
 ├── Windows/
-│   ├── [Same structure as Mac]
+│   ├── START_TIMSPEAK.bat         # One-click launcher
 │   ├── requirements.txt
 │   ├── config.yaml.example
 │   ├── main.py
 │   ├── core/
+│   │   ├── audio_capture.py
+│   │   ├── stt_adapter.py
+│   │   └── llm_adapter.py
 │   ├── adapters/
+│   │   ├── stt/
+│   │   │   ├── whisper_local.py    # openai-whisper
+│   │   │   ├── whisper_fast.py     # faster-whisper
+│   │   │   ├── whisper_cloud.py    # OpenAI API
+│   │   │   ├── google_cloud.py
+│   │   │   └── windows_speech.py   # Native Windows Speech
+│   │   └── llm/
+│   │       └── litellm_adapter.py
 │   └── web/
+│       ├── app.py
+│       ├── templates/
+│       │   └── index.html
+│       └── static/
+│           ├── style.css
+│           └── script.js
 │
 └── RaspberryPi/
     ├── requirements.txt
     ├── config.yaml.example
     ├── main.py                     # Entry point
+    ├── timspeak.service            # Systemd service for auto-start
     ├── hardware/
     │   ├── buttons.py              # GPIO button handling (gpiozero)
     │   └── usb_hid.py              # USB HID keyboard emulation
@@ -137,13 +158,14 @@ Timspeak/
     │   └── llm_adapter.py
     ├── adapters/
     │   ├── stt/
-    │   │   ├── whisper_local.py
-    │   │   ├── whisper_cloud.py
+    │   │   ├── whisper_local.py    # openai-whisper
+    │   │   ├── whisper_fast.py     # faster-whisper
+    │   │   ├── whisper_cloud.py    # OpenAI API
     │   │   └── google_cloud.py
     │   └── llm/
     │       └── litellm_adapter.py
     └── setup/
-        ├── install.sh              # Dependency installation
+        ├── install.sh              # Dependency installation + systemd setup
         └── usb_hid_setup.sh        # Configure Pi as USB HID device
 ```
 
@@ -218,56 +240,46 @@ Two toggleable modes:
 
 ## Implementation Plan
 
-### Phase 1: Core Infrastructure
+### Phase 1: Windows Proof of Concept (BUILD FIRST)
 **Deliverables:**
-- [ ] Project scaffolding (folders, READMEs)
-- [ ] LiteLLM integration wrapper
-- [ ] STT adapter interface definition
-- [ ] Configuration file structure (YAML)
+- [ ] Project scaffolding (folders, config structure)
+- [ ] Audio capture using `sounddevice`
+- [ ] All STT adapters (whisper local, faster-whisper, whisper cloud, Google Cloud, Windows Speech)
+- [ ] LiteLLM adapter with multi-provider support
+- [ ] Flask web interface with dropdowns
+- [ ] Clipboard integration (pyperclip or win32clipboard)
+- [ ] One-click `START_TIMSPEAK.bat` launcher
+- [ ] Full workflow: Record → Transcribe → Clean → Display → Copy
 
 ### Phase 2: Mac Proof of Concept
 **Deliverables:**
-- [ ] Audio capture using `sounddevice`
-- [ ] Whisper local adapter implementation
-- [ ] LiteLLM adapter with Claude API support
-- [ ] Flask web interface (basic)
-- [ ] Clipboard integration
-- [ ] Full workflow: Record → Transcribe → Clean → Display → Copy
+- [ ] Port Windows implementation to Mac
+- [ ] macOS Speech Framework adapter
+- [ ] macOS clipboard handling (pbcopy)
+- [ ] One-click `START_TIMSPEAK.command` launcher
+- [ ] Flask web interface (matching Windows)
+- [ ] Full workflow testing on macOS
 
-### Phase 3: Windows Proof of Concept
-**Deliverables:**
-- [ ] Port Mac implementation to Windows
-- [ ] Windows-specific clipboard handling
-- [ ] Test with Windows Speech Recognition (optional)
-- [ ] Flask web interface (matching Mac)
-- [ ] Full workflow testing
-
-### Phase 4: Raspberry Pi Proof of Concept
+### Phase 3: Raspberry Pi Proof of Concept
 **Deliverables:**
 - [ ] GPIO button setup (gpiozero)
 - [ ] Button mode logic (hold vs. toggle)
-- [ ] Audio capture on Pi
+- [ ] Audio capture on Pi (test performance)
 - [ ] USB HID gadget mode configuration
 - [ ] Keyboard emulation implementation
 - [ ] LED status indicators
+- [ ] Systemd service for auto-start on boot
+- [ ] Installation script (`setup/install.sh`)
 - [ ] Full workflow: Button → Record → Process → HID Type
 
-### Phase 5: Multi-Provider Support
-**Deliverables:**
-- [ ] Google Cloud Speech adapter
-- [ ] OpenAI Whisper cloud adapter
-- [ ] LiteLLM configuration for multiple LLMs (OpenAI, Ollama, etc.)
-- [ ] Web UI dropdowns for provider selection
-- [ ] Config file validation
-
-### Phase 6: Polish & Documentation
+### Phase 4: Polish & Documentation
 **Deliverables:**
 - [ ] Comprehensive README with setup instructions
 - [ ] API key configuration guide
 - [ ] Raspberry Pi hardware assembly guide
 - [ ] Troubleshooting section
 - [ ] Example config files
-- [ ] Demo video/GIFs
+- [ ] Cross-platform testing and bug fixes
 
 ---
 
@@ -279,16 +291,31 @@ Two toggleable modes:
 # Timspeak Configuration
 
 stt:
-  default: whisper_local
+  default: whisper_fast
   providers:
     whisper_local:
+      # Official openai-whisper (slower but original)
       model_size: base  # tiny, base, small, medium, large
       language: en
+    whisper_fast:
+      # faster-whisper (4x faster, less memory)
+      model_size: base  # tiny, base, small, medium, large
+      language: en
+      device: cpu  # or cuda
+      compute_type: int8  # int8, float16, float32
     whisper_cloud:
+      # OpenAI API (cloud-based)
       api_key: ${OPENAI_API_KEY}
+      model: whisper-1
     google_cloud:
       api_key: ${GOOGLE_CLOUD_API_KEY}
       language_code: en-US
+    windows_speech:
+      # Windows Speech Recognition (Windows only)
+      enabled: true
+    macos_speech:
+      # macOS Speech Framework (Mac only)
+      enabled: true
 
 llm:
   default: claude
@@ -445,13 +472,42 @@ The Pi will be configured as a USB HID gadget device using `dwc2` overlay:
 
 ---
 
+## Final Design Decisions
+
+### Critical Constraints
+1. **Code Architecture:** Separate POCs - NO shared library. Each platform is fully independent.
+2. **Target Hardware:** Raspberry Pi 4 (adequate performance for local Whisper)
+3. **Whisper Modularity:** Support BOTH `openai-whisper` AND `faster-whisper` as toggleable options
+4. **Scope:** Full implementation - all STT engines including native OS APIs
+5. **Build Order:** Windows → Mac → Raspberry Pi
+6. **Startup:**
+   - Windows: One-click `.bat` executable
+   - Mac: One-click `.command` or `.app` launcher
+   - Raspberry Pi: Auto-start on boot via systemd service
+
+### STT Engine Roster (All Platforms)
+- **openai-whisper** (local) - Official implementation
+- **faster-whisper** (local) - 4x faster variant
+- **Whisper API** (cloud) - OpenAI hosted
+- **Google Cloud Speech-to-Text** (cloud)
+- **Windows Speech Recognition** (Windows only)
+- **macOS Speech Framework** (Mac only)
+
+### Modularity Philosophy
+Each adapter is a standalone module with identical interface. User selects via config dropdown. NO HARDCODED DEPENDENCIES - if Whisper isn't installed, that option is grayed out in UI.
+
+---
+
 ## Questions Resolved
 
 1. **Repo Name:** Timspeak ✅
-2. **STT Engine:** Toggleable between Whisper (local), Whisper (cloud), Google Cloud ✅
+2. **STT Engine:** Toggleable between ALL variants (Whisper local/fast/cloud, Google Cloud, native) ✅
 3. **GPIO Library:** gpiozero (critically evaluated) ✅
 4. **Pi Clipboard:** USB HID device ✅
 5. **LLM Framework:** LiteLLM (supports all major providers) ✅
+6. **Code Sharing:** Separate POCs with independent codebases ✅
+7. **Pi Model:** Raspberry Pi 4 ✅
+8. **Build Order:** Windows first, then Mac, then Pi ✅
 
 ---
 
