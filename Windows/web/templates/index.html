@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timspeak - AI Dictation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Timspeak</h1>
+            <p class="subtitle">AI-Powered Dictation System</p>
+        </header>
+
+        <div class="controls">
+            <div class="button-group">
+                <button id="recordBtn" class="btn btn-record" disabled>
+                    <span class="btn-icon">●</span> Record
+                </button>
+                <button id="stopBtn" class="btn btn-stop" disabled>
+                    <span class="btn-icon">■</span> Stop
+                </button>
+            </div>
+
+            <div class="settings-group">
+                <div class="setting">
+                    <label for="sttSelect">STT Engine:</label>
+                    <select id="sttSelect" class="select">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="llmSelect">LLM Provider:</label>
+                    <select id="llmSelect" class="select">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span id="statusText">Ready</span>
+            <span id="spinner" class="spinner hidden">⏳</span>
+        </div>
+
+        <div class="output-section">
+            <div class="output-box">
+                <h3>Original Dictation</h3>
+                <textarea id="originalText" readonly placeholder="Your transcribed speech will appear here..."></textarea>
+            </div>
+
+            <div class="output-box">
+                <h3>Cleaned Output</h3>
+                <textarea id="cleanedText" readonly placeholder="AI-cleaned text will appear here..."></textarea>
+                <div class="button-row">
+                    <button id="copyBtn" class="btn btn-copy" disabled>
+                        📋 Copy to Clipboard
+                    </button>
+                    <button id="clearBtn" class="btn btn-clear" disabled>
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <p><strong>STT Adapters Loaded:</strong> <span id="sttCount">0</span></p>
+            <p><strong>LLM Adapters Loaded:</strong> <span id="llmCount">0</span></p>
+        </div>
+
+        <footer>
+            <p>Built with <a href="https://github.com/TRob9/Timspeak" target="_blank">Timspeak</a></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
