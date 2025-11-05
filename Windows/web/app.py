@@ -252,17 +252,12 @@ def setup_ollama_interactive():
                 for model in models:
                     print(f"  • {model.get('name', 'unknown')}")
 
-                print("\n🔧 Ollama is ready but config may need updating.")
-                choice = input("\nUpdate config.yaml to use Ollama? (y/n): ").strip().lower()
-                if choice == 'y':
-                    update_config_for_ollama(models[0].get('name', 'llama2'))
-                    return True
-                return False
+                # Already have models - offer to download more
+                print("\n📥 Want to download another Ollama model?")
     except:
         pass
 
-    # Ollama not running or no models
-    print("\n⚠️  Ollama server is not running or no models installed.")
+    # Show available models (whether or not they have some already)
     print("\nAvailable models:")
     print("  1. llama3.2 (2GB) - Fast, good for most tasks")
     print("  2. llama3 (4.7GB) - Better quality")
