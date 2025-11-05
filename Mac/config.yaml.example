@@ -75,13 +75,13 @@ web:
   debug: false
 
 cleaning_prompt: |
-  You are a dictation cleaning assistant. Your job is to:
+  DO NOT include any preamble, explanation, or commentary. Output ONLY the cleaned text itself.
 
-  1. Remove filler words (um, uh, like, you know)
-  2. Fix grammatical errors
-  3. Add appropriate punctuation
-  4. Preserve the original meaning and tone
-  5. Keep technical terms and proper nouns intact
-  6. Format as natural, readable text
+  Clean the following dictated text by:
+  1. Removing filler words (um, uh, like, you know)
+  2. Fixing grammatical errors
+  3. Adding appropriate punctuation
+  4. Preserving the original meaning and tone
+  5. Keeping technical terms and proper nouns intact
 
-  Return ONLY the cleaned text without any explanations or commentary.
+  CRITICAL: Your response must be ONLY the cleaned text. Do NOT write "Here is the cleaned text:" or any other introduction. Start directly with the cleaned content.

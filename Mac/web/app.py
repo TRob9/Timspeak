@@ -10,6 +10,8 @@ import os
 import sys
 import threading
 import pyperclip
+import subprocess
+import shutil
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -90,6 +92,11 @@ def init_adapters():
 
     for provider_name, provider_config in llm_config.items():
         try:
+            # Check if explicitly disabled in config
+            if not provider_config.get('enabled', True):
+                print(f"✗ LLM adapter disabled in config: {provider_name}")
+                continue
+
             adapter = LiteLLMAdapter(provider_name, provider_config, cleaning_prompt)
             if adapter.is_available():
                 llm_adapters[provider_name] = adapter
@@ -212,6 +219,227 @@ def api_clear():
     return jsonify({'success': True})
 
 
+def check_ollama_installed():
+    """Check if Ollama is installed."""
+    return shutil.which('ollama') is not None
+
+
+def setup_ollama_interactive():
+    """Interactive setup for Ollama."""
+    print("\n" + "=" * 60)
+    print("🤖 OLLAMA SETUP")
+    print("=" * 60)
+
+    # Check if Ollama is installed
+    if not check_ollama_installed():
+        print("\n❌ Ollama is not installed.")
+        print("\nTo install Ollama:")
+        print("  • Download: https://ollama.ai/download")
+        print("  • Or run: brew install ollama")
+        print("\nAfter installing, restart Timspeak.")
+        return False
+
+    print("\n✓ Ollama is installed!")
+
+    # Check if Ollama server is running
+    try:
+        import requests
+        response = requests.get("http://localhost:11434/api/tags", timeout=2)
+        if response.status_code == 200:
+            models = response.json().get('models', [])
+            if models:
+                print(f"\n✓ Ollama server is running with {len(models)} model(s)")
+                for model in models:
+                    print(f"  • {model.get('name', 'unknown')}")
+
+                print("\n🔧 Ollama is ready but config may need updating.")
+                choice = input("\nUpdate config.yaml to use Ollama? (y/n): ").strip().lower()
+                if choice == 'y':
+                    update_config_for_ollama(models[0].get('name', 'llama2'))
+                    return True
+                return False
+    except:
+        pass
+
+    # Ollama not running or no models
+    print("\n⚠️  Ollama server is not running or no models installed.")
+    print("\nAvailable models:")
+    print("  1. llama3.2 (2GB) - Fast, good for most tasks")
+    print("  2. llama3 (4.7GB) - Better quality")
+    print("  3. mistral (4.1GB) - Great for coding/tech")
+    print("  4. llama2 (3.8GB) - Older but reliable")
+
+    choice = input("\nDownload a model? Enter 1-4 (or 'n' to skip): ").strip()
+
+    models = {
+        '1': 'llama3.2',
+        '2': 'llama3',
+        '3': 'mistral',
+        '4': 'llama2'
+    }
+
+    if choice in models:
+        model_name = models[choice]
+        print(f"\n📥 Downloading {model_name}... (this may take a few minutes)")
+
+        try:
+            result = subprocess.run(
+                ['ollama', 'pull', model_name],
+                check=True,
+                capture_output=False,
+                text=True
+            )
+
+            print(f"\n✓ Successfully downloaded {model_name}!")
+
+            # Update config.yaml
+            update_config_for_ollama(model_name)
+
+            # Check if server is running
+            print("\n🚀 Starting Ollama server...")
+            print("NOTE: Ollama server will run in the background.")
+
+            try:
+                # Start ollama serve in background
+                subprocess.Popen(
+                    ['ollama', 'serve'],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+
+                # Give it a moment to start
+                import time
+                time.sleep(2)
+
+                print("✓ Ollama server started!")
+                return True
+
+            except Exception as e:
+                print(f"⚠️  Couldn't start Ollama server automatically: {e}")
+                print("\nPlease open a NEW terminal and run:")
+                print("  ollama serve")
+                return False
+
+        except subprocess.CalledProcessError as e:
+            print(f"\n❌ Failed to download model: {e}")
+            return False
+
+    return False
+
+
+def update_config_for_ollama(model_name='llama3'):
+    """Update config.yaml to use Ollama."""
+    global config
+
+    # Update in-memory config
+    if 'llm' not in config:
+        config['llm'] = {}
+    if 'providers' not in config['llm']:
+        config['llm']['providers'] = {}
+    if 'ollama' not in config['llm']['providers']:
+        config['llm']['providers']['ollama'] = {}
+
+    config['llm']['default'] = 'ollama'
+    config['llm']['providers']['ollama']['enabled'] = True
+    config['llm']['providers']['ollama']['model'] = model_name
+    config['llm']['providers']['ollama']['base_url'] = 'http://localhost:11434'
+
+    # Write to file
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yaml')
+    try:
+        with open(config_path, 'w') as f:
+            yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+        print(f"\n✓ Updated config.yaml to use Ollama with {model_name}")
+    except Exception as e:
+        print(f"\n⚠️  Couldn't update config.yaml: {e}")
+        print("Please manually update config.yaml:")
+        print(f"  llm.default: ollama")
+        print(f"  llm.providers.ollama.model: {model_name}")
+
+
+def setup_stt_interactive():
+    """Interactive setup for STT adapters."""
+    global config
+
+    print("\n" + "=" * 60)
+    print("🎤 SPEECH-TO-TEXT SETUP")
+    print("=" * 60)
+
+    print("\nAvailable STT engines:")
+    print("  1. macOS Speech Recognition (Fast, free, built-in)")
+    print("  2. Whisper Tiny (Fast, 75MB, works offline)")
+    print("  3. Whisper Base (Better quality, 145MB, works offline)")
+    print("  4. Skip for now")
+
+    choice = input("\nChoose an option (1-4): ").strip()
+
+    if choice == '1':
+        print("\n📥 Setting up macOS Speech Recognition...")
+        print("Installing dependencies...")
+        try:
+            subprocess.run(
+                ['pip', 'install', '-q', 'SpeechRecognition', 'pyobjc-framework-Speech'],
+                check=True
+            )
+            print("✓ macOS Speech Recognition is ready!")
+
+            # Update config
+            if 'stt' not in config:
+                config['stt'] = {}
+            if 'providers' not in config['stt']:
+                config['stt']['providers'] = {}
+            if 'macos_speech' not in config['stt']['providers']:
+                config['stt']['providers']['macos_speech'] = {}
+
+            config['stt']['default'] = 'macos_speech'
+            config['stt']['providers']['macos_speech']['enabled'] = True
+
+            return True
+
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to install: {e}")
+            return False
+
+    elif choice == '2' or choice == '3':
+        model_size = 'tiny' if choice == '2' else 'base'
+        model_mb = '75MB' if choice == '2' else '145MB'
+
+        print(f"\n📥 Installing Whisper {model_size} ({model_mb})...")
+        print("This will download the model on first use.")
+
+        try:
+            subprocess.run(
+                ['pip', 'install', 'openai-whisper'],
+                check=True
+            )
+            print(f"✓ Whisper {model_size} is ready!")
+
+            # Update config
+            if 'stt' not in config:
+                config['stt'] = {}
+            if 'providers' not in config['stt']:
+                config['stt']['providers'] = {}
+            if 'whisper_local' not in config['stt']['providers']:
+                config['stt']['providers']['whisper_local'] = {}
+
+            config['stt']['default'] = 'whisper_local'
+            config['stt']['providers']['whisper_local']['enabled'] = True
+            config['stt']['providers']['whisper_local']['model'] = model_size
+
+            # Save config
+            config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yaml')
+            with open(config_path, 'w') as f:
+                yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+
+            return True
+
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to install: {e}")
+            return False
+
+    return False
+
+
 def main():
     """Main entry point."""
     print("=" * 60)
@@ -227,29 +455,31 @@ def main():
     init_adapters()
 
     if not stt_adapters:
-        print("\n⚠️  WARNING: No STT adapters available!")
-        print("Install at least one: pip install openai-whisper faster-whisper")
+        # Try interactive STT setup
+        if setup_stt_interactive():
+            print("\n🔄 Reinitializing adapters with STT...")
+            init_adapters()
+
+        if not stt_adapters:
+            print("\n⚠️  WARNING: No STT adapters available!")
+            print("You'll need to install one manually later.")
 
     if not llm_adapters:
-        print("\n" + "=" * 60)
-        print("⚠️  NO LLM ADAPTERS AVAILABLE!")
-        print("=" * 60)
-        print("\nTimspeak needs an LLM to clean your dictation.")
-        print("\n🚀 RECOMMENDED: Use Ollama (runs locally, no API key needed)")
-        print("\nQuick Start with Ollama:")
-        print("  1. Install Ollama:")
-        print("     macOS: https://ollama.ai/download")
-        print("     Or: brew install ollama")
-        print("\n  2. Open a NEW terminal and run:")
-        print("     ollama pull llama2")
-        print("     ollama serve")
-        print("\n  3. Restart Timspeak")
-        print("\n📝 Alternative: Add API keys to config.yaml")
-        print("   - Anthropic Claude: https://console.anthropic.com")
-        print("   - OpenAI GPT: https://platform.openai.com")
-        print("\n" + "=" * 60)
-        input("\nPress Enter to continue (Timspeak will start but won't work until you set up an LLM)...")
-        print()
+        # Try interactive Ollama setup
+        if setup_ollama_interactive():
+            print("\n🔄 Reinitializing adapters with Ollama...")
+            init_adapters()
+
+        if not llm_adapters:
+            print("\n" + "=" * 60)
+            print("⚠️  NO LLM ADAPTERS AVAILABLE!")
+            print("=" * 60)
+            print("\n📝 Alternative: Add API keys to config.yaml")
+            print("   - Anthropic Claude: https://console.anthropic.com")
+            print("   - OpenAI GPT: https://platform.openai.com")
+            print("\n" + "=" * 60)
+            input("\nPress Enter to continue (Timspeak will start but won't work until you set up an LLM)...")
+            print()
 
     # Start Flask server
     web_config = config.get('web', {})

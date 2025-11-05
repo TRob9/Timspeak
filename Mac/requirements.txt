@@ -1,24 +1,24 @@
 # Core Dependencies
 flask==3.0.0
 pyyaml==6.0.1
-numpy==1.26.2
-scipy==1.11.4
+numpy>=2.0.0
+soundfile==0.12.1
 sounddevice==0.4.6
 pyperclip==1.8.2
 requests==2.31.0
 
 # LLM Provider Support
-litellm==1.17.9
+litellm>=1.40.0
 
-# Speech-to-Text Engines
-openai-whisper==20231117
-faster-whisper==0.10.0
-google-cloud-speech==2.24.0
-openai==1.6.1
+# Speech-to-Text Engines (commented for faster install)
+# openai-whisper==20231117
+# faster-whisper==0.10.0
+# google-cloud-speech==2.24.0
+openai>=1.27.0
 SpeechRecognition==3.10.1
 
-# Windows-specific
-pywin32==306; sys_platform == 'win32'
+# Platform-specific
+pywin32>=311; sys_platform == 'win32'
 pyaudio==0.2.14; sys_platform == 'win32'
 
 # Optional but recommended

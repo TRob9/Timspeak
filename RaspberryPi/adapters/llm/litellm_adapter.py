@@ -58,9 +58,22 @@ class LiteLLMAdapter(LLMAdapter):
                 {"role": "user", "content": raw_text}
             ]
 
+            # Format model name for litellm
+            # Some providers need explicit prefixes, others auto-detect
+            model_name = self.model
+
+            # Providers that need explicit prefixes
+            needs_prefix = ['ollama', 'huggingface', 'azure', 'bedrock', 'vertex_ai']
+
+            # Add prefix if needed and not already present
+            if self.provider_name in needs_prefix:
+                prefix = f"{self.provider_name}/"
+                if not model_name.startswith(prefix):
+                    model_name = f"{prefix}{model_name}"
+
             # Build completion kwargs
             kwargs = {
-                "model": self.model,
+                "model": model_name,
                 "messages": messages,
                 "max_tokens": self.max_tokens,
                 "temperature": self.temperature,

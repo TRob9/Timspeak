@@ -44,7 +44,7 @@ llm:
       # Install: https://ollama.ai
       # Run: ollama pull llama2 && ollama serve
       enabled: true
-      model: llama2
+      model: llama3
       base_url: http://localhost:11434
 
     claude:

@@ -9,7 +9,7 @@ import numpy as np
 from core.stt_adapter import STTAdapter
 import io
 import os
-from scipy.io import wavfile
+import soundfile as sf
 import tempfile
 
 
@@ -54,11 +54,8 @@ class WhisperCloudAdapter(STTAdapter):
             with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
                 temp_path = temp_file.name
 
-                # Convert float32 to int16 for WAV file
-                audio_int16 = (audio_data * 32767).astype(np.int16)
-
-                # Write WAV file
-                wavfile.write(temp_path, sample_rate, audio_int16)
+                # Write WAV file (soundfile handles float32 directly)
+                sf.write(temp_path, audio_data, sample_rate)
 
             # Send to OpenAI API
             with open(temp_path, 'rb') as audio_file:

@@ -1,0 +1,16 @@
+# Core Dependencies (Minimal - Fast Install)
+flask==3.0.0
+pyyaml==6.0.1
+numpy==1.26.4
+sounddevice==0.4.6
+pyperclip==1.8.2
+requests==2.31.0
+
+# LLM Provider Support
+litellm==1.17.9
+
+# Audio processing (scipy alternative)
+soundfile==0.12.1
+
+# Optional but recommended
+python-dotenv==1.0.0

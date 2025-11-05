@@ -52,8 +52,8 @@ REM Activate virtual environment
 call venv\Scripts\activate.bat
 
 REM Install/update dependencies
-echo Checking dependencies...
-pip install -q -r requirements.txt
+echo Installing/updating dependencies...
+pip install -r requirements.txt
 if errorlevel 1 (
     echo WARNING: Some dependencies failed to install
     echo You may need to install them manually
