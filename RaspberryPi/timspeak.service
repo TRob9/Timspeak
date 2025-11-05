@@ -1,0 +1,19 @@
+[Unit]
+Description=Timspeak AI Dictation Device
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Timspeak/RaspberryPi
+ExecStart=/home/pi/Timspeak/RaspberryPi/venv/bin/python3 /home/pi/Timspeak/RaspberryPi/main.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,93 @@
+# Timspeak Raspberry Pi Configuration
+# Copy this file to config.yaml and fill in your API keys
+
+stt:
+  default: whisper_fast  # Recommended for Pi 4
+  providers:
+    whisper_local:
+      # Official openai-whisper (slower, not recommended for Pi)
+      enabled: false
+      model_size: tiny  # Use tiny model for Pi to save memory
+      language: en
+
+    whisper_fast:
+      # faster-whisper (RECOMMENDED for Pi 4)
+      enabled: true
+      model_size: base  # Options: tiny, base (larger models may be slow)
+      language: en
+      device: cpu
+      compute_type: int8  # int8 is best for Pi
+
+    whisper_cloud:
+      # OpenAI Whisper API (cloud-based, requires API key and internet)
+      enabled: false
+      api_key: YOUR_OPENAI_API_KEY_HERE
+      model: whisper-1
+
+    google_cloud:
+      # Google Cloud Speech-to-Text (requires API key and internet)
+      enabled: false
+      api_key: YOUR_GOOGLE_CLOUD_API_KEY_HERE
+      language_code: en-US
+
+llm:
+  default: claude
+  providers:
+    claude:
+      model: claude-sonnet-4-5-20250929
+      api_key: YOUR_ANTHROPIC_API_KEY_HERE
+      max_tokens: 1000
+      temperature: 0.3
+
+    openai:
+      model: gpt-4
+      api_key: YOUR_OPENAI_API_KEY_HERE
+      max_tokens: 1000
+      temperature: 0.3
+
+    ollama:
+      # Local Ollama instance (can run on Pi, but slow)
+      model: llama2
+      base_url: http://localhost:11434
+
+    # Add more LLM providers as needed through LiteLLM
+
+audio:
+  sample_rate: 16000
+  channels: 1
+  chunk_size: 1024
+  device_index: null  # null for default, or specify device number
+
+# Raspberry Pi Hardware Configuration
+hardware:
+  # GPIO pin numbers (BCM numbering)
+  listen_button_gpio: 17
+  send_button_gpio: 27
+  led_gpio: 22
+
+  # Button modes
+  default_mode: hold_to_record  # Options: hold_to_record, toggle
+  mode_switch_hold_time: 3.0  # Seconds to hold Listen button to switch modes
+
+  # LED blink patterns (in seconds)
+  led_blink_recording: 0.5  # Blink interval while recording in toggle mode
+  led_blink_sending: 0.1   # Fast blink while typing via USB HID
+
+  # Debounce time for buttons (in seconds)
+  debounce_time: 0.05
+
+# USB HID Configuration
+usb_hid:
+  typing_delay: 0.01  # Delay between keystrokes (seconds)
+
+cleaning_prompt: |
+  You are a dictation cleaning assistant. Your job is to:
+
+  1. Remove filler words (um, uh, like, you know)
+  2. Fix grammatical errors
+  3. Add appropriate punctuation
+  4. Preserve the original meaning and tone
+  5. Keep technical terms and proper nouns intact
+  6. Format as natural, readable text
+
+  Return ONLY the cleaned text without any explanations or commentary.

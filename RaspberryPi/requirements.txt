@@ -1,0 +1,28 @@
+# Core Dependencies
+pyyaml==6.0.1
+numpy==1.26.2
+scipy==1.11.4
+sounddevice==0.4.6
+
+# LLM Provider Support
+litellm==1.17.9
+
+# Speech-to-Text Engines
+# Note: openai-whisper is large and slow on Pi - faster-whisper recommended
+faster-whisper==0.10.0
+openai-whisper==20231117  # Optional, slower
+google-cloud-speech==2.24.0
+openai==1.6.1
+
+# Raspberry Pi GPIO
+gpiozero==2.0.1
+lgpio==0.2.2.0  # Backend for gpiozero
+
+# USB HID (for keyboard emulation)
+# Will be configured manually via gadget mode - no Python package needed
+
+# Audio
+pyaudio==0.2.14  # May require: sudo apt-get install portaudio19-dev
+
+# Optional but recommended
+python-dotenv==1.0.0
