@@ -453,7 +453,7 @@ def setup_stt_interactive():
 
             config['stt']['default'] = 'whisper_local'
             config['stt']['providers']['whisper_local']['enabled'] = True
-            config['stt']['providers']['whisper_local']['model'] = model_size
+            config['stt']['providers']['whisper_local']['model_size'] = model_size
 
             # Save config
             config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yaml')
