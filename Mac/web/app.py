@@ -267,15 +267,17 @@ def setup_ollama_interactive():
     print("  1. llama3.2 (2GB) - Fast, good for most tasks")
     print("  2. llama3 (4.7GB) - Better quality")
     print("  3. mistral (4.1GB) - Great for coding/tech")
-    print("  4. llama2 (3.8GB) - Older but reliable")
+    print("  4. deepseek-r1:7b (7GB) - Reasoning model, great for complex tasks")
+    print("  5. llama2 (3.8GB) - Older but reliable")
 
-    choice = input("\nDownload a model? Enter 1-4 (or 'n' to skip): ").strip()
+    choice = input("\nDownload a model? Enter 1-5 (or 'n' to skip): ").strip()
 
     models = {
         '1': 'llama3.2',
         '2': 'llama3',
         '3': 'mistral',
-        '4': 'llama2'
+        '4': 'deepseek-r1:7b',
+        '5': 'llama2'
     }
 
     if choice in models:
@@ -304,7 +306,8 @@ def setup_ollama_interactive():
                 subprocess.Popen(
                     ['ollama', 'serve'],
                     stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stderr=subprocess.DEVNULL,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
                 )
 
                 # Give it a moment to start
@@ -454,7 +457,11 @@ def main():
     print("\nInitializing adapters...")
     init_adapters()
 
+    # Check what's missing and offer setup
+    needs_setup = False
+
     if not stt_adapters:
+        needs_setup = True
         # Try interactive STT setup
         if setup_stt_interactive():
             print("\n🔄 Reinitializing adapters with STT...")
@@ -463,8 +470,17 @@ def main():
         if not stt_adapters:
             print("\n⚠️  WARNING: No STT adapters available!")
             print("You'll need to install one manually later.")
+    else:
+        # Have STT but offer to add more
+        print(f"\n✓ {len(stt_adapters)} STT adapter(s) loaded")
+        choice = input("Add another STT engine? (y/n): ").strip().lower()
+        if choice == 'y':
+            if setup_stt_interactive():
+                print("\n🔄 Reinitializing adapters...")
+                init_adapters()
 
     if not llm_adapters:
+        needs_setup = True
         # Try interactive Ollama setup
         if setup_ollama_interactive():
             print("\n🔄 Reinitializing adapters with Ollama...")
@@ -480,6 +496,14 @@ def main():
             print("\n" + "=" * 60)
             input("\nPress Enter to continue (Timspeak will start but won't work until you set up an LLM)...")
             print()
+    else:
+        # Have LLM but offer to add more
+        print(f"\n✓ {len(llm_adapters)} LLM adapter(s) loaded")
+        choice = input("Add another LLM provider? (y/n): ").strip().lower()
+        if choice == 'y':
+            if setup_ollama_interactive():
+                print("\n🔄 Reinitializing adapters...")
+                init_adapters()
 
     # Start Flask server
     web_config = config.get('web', {})
